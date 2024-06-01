@@ -44,23 +44,34 @@ router.post("/", async (req, res, next) => {
     }
 })
 
-router.put("/:code", async (res, req, next) => {
-    if (req.req.body && req.req.body.name && req.req.body.description) {
-        const { name, description } = req.req.body;
+router.put("/:code", async (req, res, next) => {
+    if (req.body && req.body.name && req.body.description) {
+        const { name, description } = req.body;
         try {
             const results = await db.query(`UPDATE companies
                 SET name = $1, description = $2
-                WHERE code = $3 RETURNING *`, [name, description, req.req.params.code])
+                WHERE code = $3 RETURNING *`, [name, description, req.params.code])
             if (!results.rows.length) return next(new ExpressError("Not Found!", 404))
-            return res.res.json({updated : results.rows[0]})
+            return res.json({updated : results.rows[0]})
         }
         catch (e) {
             return next(e)
         }
     }
     else {
-        console.log(req.req.body)
         const e = new ExpressError("Need name and description to edit company", 400)
+        return next(e)
+    }
+})
+
+router.delete("/:code", async (req, res, next) => {
+    try {
+        const results = await db.query(`DELETE FROM companies WHERE code=$1`,
+            [req.params.code]);
+        if (!results.rowcount) throw new ExpressError("Not Found!", 404);
+        return res.json({message : "deleted"});
+    }
+    catch (e) {
         return next(e)
     }
 })
