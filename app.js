@@ -2,12 +2,15 @@
 
 
 const express = require("express");
+const companiesRoutes = require("./routes/companies.js")
 
 const app = express();
 const ExpressError = require("./expressError")
 
 app.use(express.json());
 
+
+app.use("/companies", companiesRoutes)
 
 /** 404 handler */
 
