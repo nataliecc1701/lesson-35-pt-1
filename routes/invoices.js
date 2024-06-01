@@ -44,4 +44,24 @@ router.post("/", async (req, res, next) => {
     }
 })
 
+router.put("/:id", async (req, res, next) => {
+    if (req.body && req.body.amt) {
+        const { amt } = req.body;
+        try {
+            const results = await db.query(`UPDATE invoices
+                SET amt = $1
+                WHERE id = $2 RETURNING *`, [amt, req.params.id])
+            if (!results.rows.length) return next(new ExpressError("Not Found!", 404))
+            return res.json({updated : results.rows[0]})
+        }
+        catch (e) {
+            return next(e)
+        }
+    }
+    else {
+        const e = new ExpressError("Need amt to edit invoice", 400)
+        return next(e)
+    }
+})
+
 module.exports = router
