@@ -45,13 +45,24 @@ router.post("/", async (req, res, next) => {
 })
 
 router.put("/:id", async (req, res, next) => {
-    if (req.body && req.body.amt) {
-        const { amt } = req.body;
+    if (req.body && "amt" in req.body && "paid" in req.body) {
+        const { amt, paid } = req.body;
         try {
-            const results = await db.query(`UPDATE invoices
+            const old_invoice = await db.query(`SELECT * FROM invoices WHERE id = $1`,
+                [req.params.id])
+            if (!old_invoice.rows.length) return next(new ExpressError("Not Found!", 404));
+            if (old_invoice.paid == req.body.paid) {
+                const results = await db.query(`UPDATE invoices
                 SET amt = $1
                 WHERE id = $2 RETURNING *`, [amt, req.params.id])
-            if (!results.rows.length) return next(new ExpressError("Not Found!", 404))
+            }
+            // Since we're changing the payment status, we change the datestamp on it
+            // null if it's unpaid, otherwise today
+            let paid_date = req.body.paid ? new Date() : null;
+            
+            const results = await db.query(`UPDATE invoices
+                SET amt = $1, paid = $2, paid_date = $3
+                WHERE id = $4 RETURNING *`, [amt, req.body.paid, paid_date, req.params.id])
             return res.json({updated : results.rows[0]})
         }
         catch (e) {
@@ -59,7 +70,7 @@ router.put("/:id", async (req, res, next) => {
         }
     }
     else {
-        const e = new ExpressError("Need amt to edit invoice", 400)
+        const e = new ExpressError("Need amt and paid (bool) to edit invoice", 400)
         return next(e)
     }
 })

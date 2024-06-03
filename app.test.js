@@ -168,8 +168,9 @@ describe("GET /invoices/:id", () => {
 })
 
 describe("PUT /invoices/id", () => {
-    test("Changes a single invoice", async () => {
+    test("Changes amount on an invoice", async () => {
         testInv.amt = 167;
+        testInv.paid = false;
         const resp = await request(app).put(`/invoices/${testInv.id}`).send(testInv);
         expect(resp.statusCode).toBe(200);
         expect(resp.body).toHaveProperty("updated");
@@ -187,7 +188,26 @@ describe("PUT /invoices/id", () => {
         resp2.body.invoices[0].add_date = undefined;
         expect(resp2.body.invoices[0]);
     })
+    test("Changes paid status on an invoice", async () => {
+        testInv.paid = true;
+        const today = new Date();
+        const resp = await request(app).put(`/invoices/${testInv.id}`).send(testInv);
+        expect(resp.statusCode).toBe(200);
+        expect(resp.body).toHaveProperty("updated");
+        expect(resp.body).toHaveProperty("updated.paid_date");
+        expect(resp.body.updated.paid_date.year).toEqual(today.year);
+        expect(resp.body.updated.paid_date.month).toEqual(today.month);
+        expect(resp.body.updated.paid_date.day).toEqual(today.day);
+        
+        // strip the dates and compare
+        resp.body.updated.paid_date = null;
+        testInv.paid_date = null;
+        resp.body.updated.add_date = null;
+        testInv.add_date = null;
+        expect(resp.body).toEqual({updated : testInv})
+    })
     test("404s on nonexistent companies", async () => {
+        testInv.paid = false;
         const resp = await request(app).put(`/invoices/-1`).send(testInv);
         expect(resp.statusCode).toBe(404);
         expect(resp.body).toEqual({message: "Not Found!"});
