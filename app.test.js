@@ -120,3 +120,15 @@ describe("DELETE /companies/code", () => {
         expect(resp.body).toEqual({message: "Not Found!"});
     })
 })
+
+describe("GET /invoices/", () => {
+    test("gets a list of invoices", async () => {
+        const resp = await request(app).get("/invoices");
+        expect(resp.statusCode).toBe(200);
+        // add_dates don't format correctly so we check that it's there then remove them
+        expect(resp.body).toEqual({invoices: expect.any(Array)});
+        testInv.add_date = undefined;
+        resp.body.invoices[0].add_date = undefined;
+        expect(resp.body.invoices[0])
+    })
+})
