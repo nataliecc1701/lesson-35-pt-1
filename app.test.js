@@ -129,7 +129,7 @@ describe("GET /invoices/", () => {
         expect(resp.body).toEqual({invoices: expect.any(Array)});
         testInv.add_date = undefined;
         resp.body.invoices[0].add_date = undefined;
-        expect(resp.body.invoices[0])
+        expect(resp.body.invoices[0]);
     })
 })
 
@@ -147,5 +147,67 @@ describe("POST /invoices", () => {
         expect(resp2.statusCode).toBe(200);
         expect(resp2.body).toEqual({invoices: expect.any(Array)});
         expect(resp2.body.invoices.length).toEqual(2)
+    })
+})
+
+describe("GET /invoices/:id", () => {
+    test("Gets a single invoice", async () => {
+        const resp = await request(app).get(`/invoices/${testInv.id}`);
+        expect(resp.statusCode).toBe(200);
+        expect(resp.body).toHaveProperty("invoice")
+        // add_dates don't format correctly so we remove them now that we know they're there
+        testInv.add_date = undefined;
+        resp.body.invoice.add_date = undefined;
+        expect(resp.body.invoice).toEqual(testInv);
+    })
+    test("404s on nonexistent companies", async () => {
+        const resp = await request(app).get(`/invoices/-1`);
+        expect(resp.statusCode).toBe(404);
+        expect(resp.body).toEqual({message: "Not Found!"});
+    })
+})
+
+describe("PUT /invoices/id", () => {
+    test("Changes a single invoice", async () => {
+        testInv.amt = 167;
+        const resp = await request(app).put(`/invoices/${testInv.id}`).send(testInv);
+        expect(resp.statusCode).toBe(200);
+        expect(resp.body).toHaveProperty("updated");
+        // add_dates don't format correctly so we remove them now that we know they're there
+        testInv.add_date = undefined;
+        resp.body.updated.add_date = undefined;
+        expect(resp.body.updated).toEqual(testInv);
+        
+        // does the invoices list update
+        const resp2 = await request(app).get("/invoices");
+        expect(resp2.statusCode).toBe(200);
+        // strip the add dates
+        expect(resp2.body).toEqual({invoices: expect.any(Array)});
+        testInv.add_date = undefined;
+        resp2.body.invoices[0].add_date = undefined;
+        expect(resp2.body.invoices[0]);
+    })
+    test("404s on nonexistent companies", async () => {
+        const resp = await request(app).put(`/invoices/-1`).send(testInv);
+        expect(resp.statusCode).toBe(404);
+        expect(resp.body).toEqual({message: "Not Found!"});
+    })
+})
+
+describe("DELETE /invoices/id", () => {
+    test("Deletes an invoice", async () => {
+        const resp = await request(app).delete(`/invoices/${testInv.id}`);
+        expect(resp.statusCode).toBe(200);
+        expect(resp.body).toEqual({message : "deleted"});
+        
+        // does the companies list update
+        const resp2 = await request(app).get("/invoices");
+        expect(resp2.statusCode).toBe(200);
+        expect(resp2.body).toEqual({invoices: []});
+    })
+    test("404s on nonexistent invoices", async () => {
+        const resp = await request(app).delete(`/invoices/-1`);
+        expect(resp.statusCode).toBe(404);
+        expect(resp.body).toEqual({message: "Not Found!"});
     })
 })
