@@ -64,7 +64,7 @@ describe("POST /companies", () => {
     })
 })
 
-describe("GET /company/:code", () => {
+describe("GET /companies/:code", () => {
     test("Gets a single company and its invoices", async () => {
         const resp = await request(app).get(`/companies/${testCo.code}`);
         // can't test for total equality because of formatting issues between what pg returns
@@ -83,7 +83,7 @@ describe("GET /company/:code", () => {
     })
 })
 
-describe("PUT /company/code", () => {
+describe("PUT /companies/code", () => {
     test("Changes a single company", async () => {
         testCo.name = "TestCorp";
         testCo.description = "New Fake Testing Corporation, now powered by AI"
@@ -103,7 +103,7 @@ describe("PUT /company/code", () => {
     })
 })
 
-describe("DELETE /company/code", () => {
+describe("DELETE /companies/code", () => {
     test("Deletes a company", async () => {
         const resp = await request(app).delete(`/companies/${testCo.code}`);
         expect(resp.statusCode).toBe(200);
