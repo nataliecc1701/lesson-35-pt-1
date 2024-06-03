@@ -6,6 +6,7 @@ const db = require("./db")
 
 let testCo;
 let testInv;
+let testInd;
 const secondCo = {
     code: "secCo",
     name: "Second Company",
@@ -27,15 +28,27 @@ beforeEach(async () => {
         VALUES ('testco', 314)
         RETURNING *`
     );
+    industry = await db.query(
+        `INSERT INTO industries (code, industry)
+        VALUES ('tst', 'Test Industry')
+        RETURNING *`
+    )
+    await db.query(
+        `INSERT INTO companies_industries (comp_code, ind_code)
+        VALUES ('testco', 'tst')`
+    )
     testCo = company.rows[0];
     testInv = invoice.rows[0];
+    testInd = industry.rows[0];
 })
 
 afterEach(async () => {
     // empty the database tables
     q1 = db.query(`DELETE FROM companies`)
     q2 = db.query(`DELETE FROM invoices`)
-    await Promise.all([q1, q2])
+    q3 = db.query(`DELETE FROM industries`)
+    q4 = db.query(`DELETE FROM companies_industries`)
+    await Promise.all([q1, q2, q3, q4])
 })
 
 afterAll(async () => {
@@ -75,6 +88,8 @@ describe("GET /companies/:code", () => {
         expect(resp.body.company.description).toEqual(testCo.description);
         expect(resp.body.company.invoices.length).toEqual(1);
         expect(resp.body.company.invoices[0].amt).toEqual(testInv.amt);
+        expect(resp.body.company.industries).toEqual(expect.any(Array));
+        expect(resp.body.company.industries[0]).toEqual(testInd.industry)
     })
     test("404s on nonexistent companies", async () => {
         const resp = await request(app).get(`/companies/fakeco`);
