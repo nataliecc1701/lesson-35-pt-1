@@ -43,9 +43,9 @@ INSERT INTO invoices (comp_Code, amt, paid, paid_date)
 
 INSERT INTO industries
   VALUES ('cmptr', 'Computers'),
-         ('acsrs', 'Personal Accessories')
+         ('acsrs', 'Personal Accessories');
          
 INSERT INTO companies_industries
   VALUES ('apple', 'cmptr'),
          ('apple', 'acsrs'),
-         ('ibm', 'cmptr')
+         ('ibm', 'cmptr');
