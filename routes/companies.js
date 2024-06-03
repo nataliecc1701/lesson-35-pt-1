@@ -25,7 +25,7 @@ router.get("/:code", async (req, res, next) => {
                         JOIN companies_industries ON ind_code = i.code
                         WHERE comp_code = $1`, [req.params.code])
         const indArr = []
-        for (ind of industries.rows) {
+        for (const ind of industries.rows) {
             indArr.push(ind.industry)
         }
         company.rows[0].invoices = invoices.rows;
