@@ -35,7 +35,7 @@ router.post("/", async (req, res, next) => {
         try {
             const results = await db.query(`INSERT INTO companies (code, name, description)
                 VALUES ($1, $2, $3) RETURNING *`, [code, name, description]);
-            return res.json({added : results.rows[0]})
+            return res.status(201).json({added : results.rows[0]})
         }
         catch (e) {
             return next(e)
