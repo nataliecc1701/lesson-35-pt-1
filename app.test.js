@@ -132,3 +132,20 @@ describe("GET /invoices/", () => {
         expect(resp.body.invoices[0])
     })
 })
+
+describe("POST /invoices", () => {
+    test("adds a new invoice", async () => {
+        // does the post request respond correctly
+        const resp = await request(app).post("/invoices").send(secondInv);
+        expect(resp.statusCode).toBe(201);
+        expect(resp.body).toEqual({added: expect.any(Object)});
+        expect(resp.body.added.comp_code).toEqual(secondInv.comp_code);
+        expect(resp.body.added.amt).toEqual(secondInv.amt);
+        
+        // does the invoices list update
+        const resp2 = await request(app).get("/invoices");
+        expect(resp2.statusCode).toBe(200);
+        expect(resp2.body).toEqual({invoices: expect.any(Array)});
+        expect(resp2.body.invoices.length).toEqual(2)
+    })
+})
