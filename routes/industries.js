@@ -29,11 +29,50 @@ router.get("/", async (req, res, next) => {
             }
             
             // add the company to the industries array
-            industries[idx].companies.push(r.comp_code)
+            if (r.comp_code) industries[idx].companies.push(r.comp_code)
         }
         return res.json({industries})
     }
     catch (e) {
+        return next(e)
+    }
+})
+
+router.post("/", async (req, res, next) => {
+    if (req.body.code && req.body.industry) {
+        try {
+            const results = await db.query(
+                `INSERT INTO industries (code, industry) VALUES ($1, $2) RETURNING *`,
+                [req.body.code, req.body.industry]
+            )
+            return res.status(201).json({added : results.rows[0]});
+        }
+        catch (e) {
+            return next(e)
+        } 
+    }
+    else {
+        const e = new ExpressError("Need code, industry to add industry")
+        return next(e)
+    }
+})
+
+router.post("/:code", async (req, res, next) => {
+    if (req.body.comp_code) {
+        try {
+            const result = await db.query(
+                `INSERT INTO companies_industries (comp_code, ind_code)
+                VALUES ($1, $2) RETURNING *`,
+                [req.body.comp_code, req.params.code]
+            )
+            return res.status(201).json({added : result.rows[0]})
+        }
+        catch (e) {
+            return next(e)
+        }
+    }
+    else {
+        const e = new ExpressError("Need comp_code to associate with industry")
         return next(e)
     }
 })
