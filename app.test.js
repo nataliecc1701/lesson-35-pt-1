@@ -83,3 +83,23 @@ describe("GET /company/:code", () => {
     })
 })
 
+describe("PUT /company/code", () => {
+    test("Changes a single company", async () => {
+        testCo.name = "TestCorp";
+        testCo.description = "New Fake Testing Corporation, now powered by AI"
+        const resp = await request(app).put(`/companies/${testCo.code}`).send(testCo)
+        expect(resp.statusCode).toBe(200);
+        expect(resp.body).toEqual({updated: testCo});
+        
+        // does the companies list update
+        const resp2 = await request(app).get("/companies");
+        expect(resp2.statusCode).toBe(200);
+        expect(resp2.body).toEqual({companies: [testCo]});
+    })
+    test("404s on nonexistent companies", async () => {
+        const resp = await request(app).put(`/companies/${secondCo.code}`).send(secondCo);
+        expect(resp.statusCode).toBe(404);
+        expect(resp.body).toEqual({message: "Not Found!"});
+    })
+})
+
